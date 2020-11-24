@@ -47,7 +47,7 @@ double *matriz_vector_multiplicated(double **matriz, double *vector, int dimensi
 		exit(EXIT_FAILURE);
 	}
 	for(i=0; i<filas; i++){
-		double contador=0.0d0;
+		double contador=0.0d;
 		for(j=0; j<dimension;j++){
 			contador+=matriz[i][j]*vector[j];
 		}
@@ -65,7 +65,7 @@ double *matriz_vector_multiplicated(double **matriz, double *vector, int dimensi
 /*funcion auxiliar*/
 double funcion_suma(double **matriz, double*vector, int dimension, int desde, int hasta){
 	 int i;
-	 double acumulador=0.0d0;
+	 double acumulador=0.0d;
 	 for(i=desde; i<hasta; i++){
 		 acumulador+=matriz[dimension][i]*vector[i];
 	 }
