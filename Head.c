@@ -6,6 +6,8 @@
 int main(){
 	
 	int i,j,p,q;
+	/*A continuacion se resolverá por el metodo explicito*/
+	
 	
 	
 	
