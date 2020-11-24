@@ -5,7 +5,8 @@
 
 int main(){
 	
-	int i;
+	int i,j,p,q;
+	
 	
 	
 	return 0;
