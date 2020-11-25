@@ -74,8 +74,9 @@ double funcion_suma(double **matriz, double*vector, int dimension, int desde, in
 
 double *solution_system_of_aquations(double **matriz,double *vector, int dimension, int iteraciones){
 	int p,i,j;
+	p=0;
 	double *result=NULL;
-	result=(double *) malloc((size_t) dimension* sizeof(double) );
+	result=(double *) malloc((size_t) dimension * sizeof(double) );
 	if(result==NULL){
 		perror("ERROR. There is not enough memory");
 		exit(EXIT_FAILURE);
@@ -84,13 +85,14 @@ double *solution_system_of_aquations(double **matriz,double *vector, int dimensi
 	result[i]=0.0000;
 		
 	}
+	printf("un valor %lf", result[0]);
 	while (p<iteraciones){
 		
 		for(i=0; i<dimension; i++){
 			double *numero;
 			numero=generated_vector(dimension);
-			for(i=0; i<dimension;i++){
-				numero[i]=result[i];
+			for(j=0; j<dimension;j++){
+				numero[j]=result[j];
 			}
 			double divisor= 1/matriz[i][i];
 			result[i]=divisor*(vector[i]-funcion_suma(matriz,result,i, 0, i)-funcion_suma(matriz,numero,i,i+1,dimension));
