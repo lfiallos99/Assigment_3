@@ -19,14 +19,14 @@ int main(){
 	/*Seteando las dimensiones*/
 	int ncolum, tfilas;
 	alpha=1.;
-	xinicial=0.0d;
+	xinicial=0.0d;      /*Solo se debe de cambiar aqui, para ver la convergencia*/
 	xfinal=1.0d;
 	tiempof=0.01;
 	ncolum=100;
-	tfilas=50;
+	tfilas=1000;
 	double dx=(xfinal-xinicial)/ncolum;
 	double dt=tiempof/tfilas;
-	lamda=alpha*(dt/(dx*dx));
+	lamda=alpha*(dt/(dx*dx));               // cuando esto es menor a 1/2 converge para el explicito
 	/*sacando el vector inicial*/
 	vector_coordemadas_de_posicion=generated_vector(ncolum+1);
 	vector_frontera=generated_vector(ncolum+1);
@@ -183,7 +183,7 @@ int main(){
 		strcat(linea2,buffer);
 	}
 	int len3=strlen(linea2);
-	linea[len3-1]='\n';
+	linea2[len3-1]='\n';
 	fputs(linea2,archivo_implicito);
 	for(i=0;i<tfilas+1;i++){
 		linea2[0]='\0';
@@ -196,7 +196,7 @@ int main(){
 			strcat(linea2,buffer2);
 		}
 		int len4=strlen(linea2);
-		linea[len4-1]='\n';
+		linea2[len4-1]='\n';
 		fputs(linea2,archivo_implicito);
 	}
 	
