@@ -3,6 +3,7 @@
 #include <time.h>
 #include <math.h>
 #include <errno.h>
+#include <string.h>
 #define pi   3.14159265358979323846  /*definienddo a pi*/
 #include "tools.h"
 
@@ -13,7 +14,7 @@ int main(){
 	/*A continuacion se resolverá por el metodo explicito*/
 	double **matriz_de_coeficientes, **matriz_de_resultados;
 	double *vector_tiempo;
-	double *vector_coordemadas_de_posicion;
+	double *vector_coordemadas_de_posicion, *vector_del_tiempo;
 	double *vector_frontera;
 	/*Seteando las dimensiones*/
 	int ncolum, tfilas;
@@ -23,7 +24,7 @@ int main(){
 	tiempof=0.01;
 	ncolum=100;
 	tfilas=50;
-	double dx=1./ncolum;
+	double dx=(xfinal-xinicial)/ncolum;
 	double dt=tiempof/tfilas;
 	lamda=alpha*(dt/(dx*dx));
 	/*sacando el vector inicial*/
@@ -31,6 +32,10 @@ int main(){
 	vector_frontera=generated_vector(ncolum+1);
 	for(i=0; i<ncolum+1;i++ ){
 		vector_coordemadas_de_posicion[i]=xinicial+i*dx;
+	}
+	vector_del_tiempo=generated_vector(tfilas+1);
+	for(i=0;i<tfilas+1;i++){
+		vector_del_tiempo[i]=i*dt;
 	}
 	for(j=0;j<ncolum+1;j++){
 		vector_frontera[j]=exp(vector_coordemadas_de_posicion[j]);
@@ -62,7 +67,7 @@ int main(){
 		}
 	}
 	/*Solucion por el metodo explicito*/
-	for(i=1;i<tfilas;i++){
+	for(i=1;i<tfilas+1;i++){
 		double *temporal=generated_vector(ncolum-1);
 		for (j=0; j<ncolum-1;j++){
 			temporal[j]=dt*cos(pi*i*dt)*sin(2*pi*vector_coordemadas_de_posicion[j+1]);
@@ -81,11 +86,136 @@ int main(){
 		}
 		
 	}
+	
+	/*Resolució por el metodo implicito*/
+	double **matriz_implicita_result;
+	double **matriz_coeficientes_implicita;
+	matriz_implicita_result=generated_matriz(ncolum+1, tfilas+1);
+	for(i=0; i<ncolum+1;i++){
+		matriz_implicita_result[0][i]=vector_frontera[i];
+	}
+	for(i=0;i<tfilas+1;i++){
+		matriz_implicita_result[i][0]=0.0d;
+		matriz_implicita_result[i][ncolum]=0.0d;
+	}
+	/*Calculando la matriz de coeficientes*/
+	matriz_coeficientes_implicita=generated_matriz(ncolum-1,ncolum-1);
+	for(i=0; i<ncolum-1;i++){
+		for(j=0;j<ncolum-1;j++){
+			if(j==i-1){
+				matriz_coeficientes_implicita[i][j]=-lamda;
+			}else if(j==i){
+				matriz_coeficientes_implicita[i][j]=1+2*lamda;
+			}else if (j==i+1){
+				matriz_coeficientes_implicita[i][j]=-lamda;
+			}else{
+				matriz_coeficientes_implicita[i][j]=0.0d;
+			}
+		}
+	}
+	
+	/*Solucion por el metodo de gauss-sissel*/
+	int iteraciones=200;
+	double TOL=10e-4;
+	for(i=1;i<tfilas+1;i++){
+		double *temporal=generated_vector(ncolum-1);
+		for (j=0; j<ncolum-1;j++){
+			temporal[j]=dt*cos(pi*(i+1)*dt)*sin(2*pi*vector_coordemadas_de_posicion[j+1]);
+		}
+		double *temporal_implicita=generated_vector(ncolum-1);
+		for (p=0;p<ncolum-1;p++){
+			temporal_implicita[p]=matriz_implicita_result[i-1][p+1];
+		}
+		double *vector_suma_implicito=generated_vector(ncolum-1);
+		for (j=0;j<ncolum-1;j++){
+			vector_suma_implicito[j]= temporal_implicita[j]+temporal[j];
+		}
+		double *temporal2=generated_vector(ncolum-1);
+		temporal2=solution_system_of_aquations(matriz_coeficientes_implicita,vector_suma_implicito,ncolum-1, 2000,TOL );
+		for(q=0;q<ncolum-1;q++){
+			matriz_implicita_result[i][q+1]=temporal2[q];
+		}
+		
+	}
+	
+	FILE *archivo_explicito;
+	archivo_explicito=fopen("datos_explicito.dat", "w");
+	FILE *archivo_implicito;
+	archivo_implicito=fopen("datos_implicito.dat", "w");
+	if(archivo_explicito==NULL){
+		perror("ERROR. There is not enough memory");
+		exit(EXIT_FAILURE);
+	}
+	if(archivo_implicito==NULL){
+		perror("ERROR. There is not enough memory");
+		exit(EXIT_FAILURE);
+	}
+	char  linea [20000];
+	sprintf(linea, "%d    ", ncolum+1);
+	for(i=0;i<ncolum+1;i++){
+		char buffer[100];
+		sprintf(buffer,"%lf  ", vector_coordemadas_de_posicion[i]);
+		strcat(linea,buffer);
+	}
+	int len=strlen(linea);
+	linea[len-1]='\n';
+	fputs(linea,archivo_explicito);
+	for(i=0;i<tfilas+1;i++){
+		linea[0]='\0';
+		char buffer1[100];
+		sprintf(buffer1, "%lf  ", vector_del_tiempo[i]);
+		strcat(linea, buffer1);
+		for(j=0;j<ncolum+1;j++){
+			char buffer2[150];
+			sprintf(buffer2, "   %lf", matriz_de_resultados[i][j]);
+			strcat(linea,buffer2);
+		}
+		int len2=strlen(linea);
+		linea[len2-1]='\n';
+		fputs(linea,archivo_explicito);
+	}
+	
+	char  linea2 [20000];
+	sprintf(linea2, "%d    ", ncolum+1);
+	for(i=0;i<ncolum+1;i++){
+		char buffer[100];
+		sprintf(buffer,"%lf  ", vector_coordemadas_de_posicion[i]);
+		strcat(linea2,buffer);
+	}
+	int len3=strlen(linea2);
+	linea[len3-1]='\n';
+	fputs(linea2,archivo_implicito);
+	for(i=0;i<tfilas+1;i++){
+		linea2[0]='\0';
+		char buffer1[100];
+		sprintf(buffer1, "%lf  ", vector_del_tiempo[i]);
+		strcat(linea2, buffer1);
+		for(j=0;j<ncolum+1;j++){
+			char buffer2[150];
+			sprintf(buffer2, "   %lf", matriz_implicita_result[i][j]);
+			strcat(linea2,buffer2);
+		}
+		int len4=strlen(linea2);
+		linea[len4-1]='\n';
+		fputs(linea2,archivo_implicito);
+	}
+	
+	/*for(i=0;i<tfilas+1;i++){
+		for(j=0;j<ncolum+1;j++){
+			fprintf(archivo_explicito,"%lf   %lf   %lf \n", vector_coordemadas_de_posicion[i], vector_coordemadas_de_posicion[j], matriz_implicita_result[i][j] );
+		}
+	}*/
+	fclose(archivo_explicito);
+	fclose(archivo_implicito);
+	
+	
+
+	
 	double y= exp(vector_coordemadas_de_posicion[4]);
 	
 	
 	
-	printf("aver con f %lf \n", matriz_de_resultados[40][56] );
+	printf("aver con f %lf \n", TOL );
 	
 	
 	
