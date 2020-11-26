@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+#include <errno.h>
 #include "tools.h"
 
 /*Genera una matriz como una reserva de memoria dinamica*/
@@ -72,7 +74,7 @@ double funcion_suma(double **matriz, double*vector, int dimension, int desde, in
 	return acumulador;	
 }
 
-double *solution_system_of_aquations(double **matriz,double *vector, int dimension, int iteraciones){
+double *solution_system_of_aquations(double **matriz,double *vector, int dimension, int iteraciones,double TOL){
 	int p,i,j;
 	p=0;
 	double *result=NULL;
@@ -85,19 +87,38 @@ double *solution_system_of_aquations(double **matriz,double *vector, int dimensi
 	result[i]=0.0000;
 		
 	}
-	printf("un valor %lf", result[0]);
 	while (p<iteraciones){
 		
+		double *numero;
+		numero=generated_vector(dimension);
+		for(j=0; j<dimension;j++){
+			numero[j]=result[j];
+		}
+		
 		for(i=0; i<dimension; i++){
-			double *numero;
-			numero=generated_vector(dimension);
-			for(j=0; j<dimension;j++){
-				numero[j]=result[j];
-			}
 			double divisor= 1/matriz[i][i];
 			result[i]=divisor*(vector[i]-funcion_suma(matriz,result,i, 0, i)-funcion_suma(matriz,numero,i,i+1,dimension));
 		}
-		p++;
+		
+		double *diferencia;
+		diferencia=generated_vector(dimension);
+		for(j=0;j<dimension;j++){
+			diferencia[j]=numero[j]-result[j];
+		}
+		double contador=0;
+		for(j=0;j<dimension;j++){
+			contador+=diferencia[j]*diferencia[j];
+		}
+		double norma=sqrt(contador);
+		if (norma<TOL){
+			return result;
+		} else if(p<iteraciones){
+			p++;
+		}else{
+			perror("EL sistema diverge");
+			exit(EXIT_FAILURE);
+		}
+		
 	}
 	
 	return result;

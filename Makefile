@@ -9,10 +9,10 @@ BINARY2= soldebug
 all: $(BINARY)
 
 SOLHEAD: $(OBJS)
-	$(CC) -o $(BINARY) $(FLAGS02)  $(OBJS)
+	$(CC) -o $(BINARY) $(FLAGS02)  $(OBJS) -lm
 	
 soldebug: $(OBJS)
-	$(CC) -g -o $(BINARY2) $(FLAGS0)  $(OBJS)
+	$(CC) -g -o $(BINARY2) $(FLAGS0)  $(OBJS) -lm
 
 clean:
 	rm -f $(BINARY) $(BINARY2)
